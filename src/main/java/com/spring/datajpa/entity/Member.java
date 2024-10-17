@@ -1,5 +1,7 @@
 package com.spring.datajpa.entity;
 
+import org.hibernate.annotations.NamedQuery;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -18,6 +20,11 @@ import lombok.ToString;
 @Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @ToString(of = { "id", "username", "age" })
+// @NamedQuery는 어플리케이션 실행 시점에 문법 오류를 잡아주는 장점이 있다.
+@NamedQuery(
+    name = "Member.findByUsername", 
+    query = "select m from Member m where m.username = :username"
+)
 public class Member {
     @Id
     @GeneratedValue

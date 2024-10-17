@@ -52,4 +52,15 @@ public class MemberJpaRepositoryTest {
         assertThat(count2).isEqualTo(0);
     }
 
+    @Test
+    void testNamedQuery() {
+        Member memberA = new Member("memberA");
+        Member memberB = new Member("memberB");
+        memberJpaRepository.save(memberA);
+        memberJpaRepository.save(memberB);
+        
+        List<Member> findMemberA = memberJpaRepository.findByUsername("memberA");
+
+        assertThat(findMemberA.get(0)).isEqualTo(memberA);
+    }
 }
