@@ -43,11 +43,11 @@ public class Member {
         this.username = username;
     }
 
-    public Member(String username, int age, Team teamA) {
+    public Member(String username, int age, Team team) {
         this.username = username;
         this.age = age;
-        if (teamA != null) {
-            changeTeam(teamA);
+        if (team != null) {
+            changeTeam(team);
         }
     }
 
