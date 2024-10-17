@@ -2,6 +2,9 @@ package com.spring.datajpa.repository;
 
 import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -32,4 +35,11 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
     @Query("select m from Member m where m.username in :names and m.age = :age")
     List<Member> findByNames(@Param("names") List<String> names, @Param("age") int age);
 
+    // @Query countQuery를 사용해서 count 쿼리를 분리할 수도 있다.
+    // @Query(value = "select m from Member m left join fetch m.team t", countQuery = "select count(m.username) from Member m")
+    Page<Member> findPageByAge(int age, Pageable pageable);
+
+    Slice<Member> findSliceByAge(int age, Pageable pageable);
+
+    List<Member> findListByAge(int age, Pageable pageable);
 }

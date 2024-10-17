@@ -8,6 +8,9 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.spring.datajpa.dto.MemberDto;
@@ -146,5 +149,40 @@ public class MemberRepositoryTest {
         for (Member member : byNames) {
             System.out.println(member);
         }
+    }
+
+    @Test
+    void paging() {
+        memberRepository.save(new Member("member1", 10, null));
+        memberRepository.save(new Member("member2", 10, null));
+        memberRepository.save(new Member("member3", 10, null));
+        memberRepository.save(new Member("member4", 10, null));
+        memberRepository.save(new Member("member5", 10, null));
+
+        int age = 10;
+        int offset = 0; // page 인덱스 0부터 시작
+        int limit = 3;
+        PageRequest pageRequest = PageRequest.of(offset, limit, Sort.by(Sort.Direction.DESC, "username"));
+
+        // Slice는 count 쿼리가 안나가고, +1만큼 더 가져온다. 예) 더보기버튼 -> +1 가져온 데이터는 숨겨두고 버튼 눌렀을 때 ...
+        // Slice<Member> page = memberRepository.findSliceByAge(age, pageRequest);
+
+        // 반환타입을 List로 받아도 PageRequest 적용됨
+        // List<Member> page = memberRepository.findListByAge(age, pageRequest);
+
+        Page<Member> page = memberRepository.findPageByAge(age, pageRequest);
+        // API로 응답할 때, DTO로 변환하여 응답할 때 map()을 이용해서 편리하게 변환할 수 있다.
+        Page<MemberDto> pageMap = page.map(member -> new MemberDto(member.getId(), member.getUsername(), null));
+
+        List<Member> members = page.getContent();
+        long totalCount = page.getTotalElements();
+
+        assertThat(members.size()).isEqualTo(3);
+        assertThat(totalCount).isEqualTo(5);
+        assertThat(page.getNumber()).isEqualTo(0);
+        assertThat(page.getTotalPages()).isEqualTo(2);
+        assertThat(page.isFirst()).isTrue();
+        assertThat(page.hasNext()).isTrue();
+
     }
 }
