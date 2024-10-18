@@ -221,4 +221,47 @@ public class MemberRepositoryTest {
 
         assertThat(count).isEqualTo(2);
     }
+
+    @Test
+    public void findMemberLazy() {
+        // member1 -> TeamA
+        // member2 -> TeamB
+        Team teamA = new Team("teamA");
+        Team teamB = new Team("teamB");
+        teamRepository.save(teamA);
+        teamRepository.save(teamB);
+        Member member1 = new Member("member1", 10, teamA);
+        Member member2 = new Member("member2", 10, teamB);
+        memberRepository.save(member1);
+        memberRepository.save(member2);
+
+        // 영속성 컨텍스트 초기화
+        em.flush();
+        em.clear();
+
+        // Member(lazy) n : 1 Team
+        List<Member> members = memberRepository.findAll();
+        // N+1 문제, @EntityGraph(attributePaths = {"team"}) 없을 때
+        for (Member member : members) {
+            // Member 쿼리 1개 실행
+            System.out.println("findAll member -> " + member);
+            // Lazy 로딩으로 member의 team은 프록시 객체임
+            System.out.println("findAll member team class -> " + member.getTeam().getClass());
+            // 아래 getTeam() 호출 시 memberN의 Team 쿼리 N번 실행됨
+            System.out.println("findAll member get Team -> " + member.getTeam().getName());
+        }
+        
+        /*
+        // fetch join으로 실행했을 경우, @EntityGraph(attributePaths = {"team"}) 으로 fetch join 대체 가능
+        List<Member> memberFetchJoin = memberRepository.findMemberFetchJoin();
+        for (Member member : memberFetchJoin) {
+            // fetch join으로 Team까지 한번에 설정하여 가져온다.
+            System.out.println("memberFetchJoin member -> " + member);
+            // team 객체
+            System.out.println("memberFetchJoin member team class -> " + member.getTeam().getClass());
+            // 처음 쿼리로 이미 team은 설정되어 있다. 추가 n번의 쿼리를 실행하지 않는다.
+            System.out.println("findAll member get Team -> " + member.getTeam().getName());
+        }
+         */
+    }
 }
