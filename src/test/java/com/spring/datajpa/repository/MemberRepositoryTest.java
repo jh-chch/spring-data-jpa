@@ -17,6 +17,9 @@ import com.spring.datajpa.dto.MemberDto;
 import com.spring.datajpa.entity.Member;
 import com.spring.datajpa.entity.Team;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+
 @SpringBootTest
 @Transactional
 public class MemberRepositoryTest {
@@ -26,6 +29,9 @@ public class MemberRepositoryTest {
 
     @Autowired
     private TeamRepository teamRepository;
+
+    @PersistenceContext
+    private EntityManager em;
 
     @Test
     void testMember() {
@@ -184,5 +190,35 @@ public class MemberRepositoryTest {
         assertThat(page.isFirst()).isTrue();
         assertThat(page.hasNext()).isTrue();
 
+    }
+
+    @Test
+    void testAgePlus() {
+        Member memberA = new Member("memberA", 10, null);
+        Member memberB = new Member("memberB", 15, null);
+        Member memberC = new Member("memberC", 20, null);
+
+        memberRepository.save(memberA);
+        memberRepository.save(memberB);
+        memberRepository.save(memberC);
+
+        int count = memberRepository.bulkAgePlus(15);
+
+        /**
+         * memberC의 age를 bulkAgePlus된 21로 생각할 수 있다.
+         * 하지만 bulk 연산은 DB에는 반영됐지만, 영속성 컨텍스트에는 반영되지 않았다.
+         * 따라서, em.clear()를 호출해야한다.
+         */
+        List<Member> result = memberRepository.findByUsername("memberC");
+        Member findMemberC = result.get(0);
+        System.out.println(findMemberC); // 20
+
+        // em.clear(); // @Modifying의 clearAutomatically = true 옵션으로 대체
+
+        List<Member> result2 = memberRepository.findByUsername("memberC");
+        Member findMemberC2 = result2.get(0);
+        System.out.println(findMemberC2); // 21
+
+        assertThat(count).isEqualTo(2);
     }
 }
