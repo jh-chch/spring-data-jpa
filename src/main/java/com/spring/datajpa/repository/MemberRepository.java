@@ -40,6 +40,7 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
     // @Query countQuery를 사용해서 count 쿼리를 분리할 수도 있다.
     // @Query(value = "select m from Member m left join fetch m.team t", countQuery = "select count(m.username) from Member m")
     Page<Member> findPageByAge(int age, Pageable pageable);
+    Page<Member> findPageBy(Pageable pageable);
 
     Slice<Member> findSliceByAge(int age, Pageable pageable);
 
